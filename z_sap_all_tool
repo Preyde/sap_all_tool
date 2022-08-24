@@ -1,0 +1,107 @@
+*&---------------------------------------------------------------------*
+*& Report z_add_sap_all_sap_new
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_sap_all_tool.
+
+PARAMETERS: uname TYPE uname MATCHCODE OBJECT prem DEFAULT sy-uname.
+SELECTION-SCREEN: SKIP,
+BEGIN OF LINE,
+ COMMENT 5(50) status,
+ END OF LINE,
+SKIP,
+BEGIN OF LINE,
+ PUSHBUTTON 5(20) button1 USER-COMMAND button1_press,
+ PUSHBUTTON 30(20) button2 USER-COMMAND button2_press,
+ END OF LINE.
+
+CONSTANTS: action_activate   VALUE 1,
+           action_deactivate VALUE 2,
+           action_hide       VALUE 3.
+
+DATA: button1_action    TYPE i,
+      button2_action    TYPE i,
+      buffer_filled     TYPE abap_bool,
+      sap_all_activated TYPE abap_bool.
+
+INITIALIZATION.
+
+%_uname_%_app_%-text = 'Username'.
+
+  LOOP AT SCREEN.
+    IF screen-name = 'BUTTON1' OR screen-name = 'BUTTON2'.
+      screen-invisible = '1'.
+      MODIFY SCREEN.
+    ENDIF.
+  ENDLOOP.
+
+AT SELECTION-SCREEN.
+
+  IF sy-ucomm = 'BUTTON1_PRESS'.
+    PERFORM process_action USING button1_action.
+  ELSEIF sy-ucomm = 'BUTTON2_PRESS'.
+    PERFORM process_action USING button2_action.
+  ENDIF.
+
+  SELECT COUNT( * ) FROM usrbf2 WHERE bname = @uname AND auth = '&_SAP_ALL' INTO @DATA(buffer_entry_amount).
+
+  "SAP_ALL buffer roles were above 3000 but inconsistent in tests so can't use the exact number
+  buffer_filled = COND #( WHEN buffer_entry_amount > 3000 THEN abap_true ELSE abap_false ).
+
+  SELECT SINGLE profile FROM ust04 WHERE bname = @uname AND profile = 'SAP_ALL' INTO @DATA(_profile).
+
+  sap_all_activated = COND #( WHEN sy-subrc = 0 THEN abap_true ELSE abap_false ).
+
+  IF buffer_filled = abap_true AND sap_all_activated = abap_true.
+    WRITE icon_okay TO status.
+    status = status && ' SAP_ALL is activated'.
+    button1_action = action_hide.
+    button2_action = action_deactivate.
+    button1 = 'hide SAP_ALL'.
+    button2 = 'deactivate SAP_ALL'.
+  ELSEIF buffer_filled = abap_true AND sap_all_activated = abap_false.
+    WRITE icon_select_detail TO status.
+    status = status && ' SAP_ALL is hidden'.
+    button1_action = action_activate.
+    button1 = 'activate SAP_ALL'.
+    button2_action = action_deactivate.
+    button2 = 'deactivate SAP_ALL'.
+  ELSE.
+    WRITE icon_incomplete TO status.
+    status = status && ' SAP_ALL is deactivated'.
+    button1_action = action_hide.
+    button1 = 'hide SAP_ALL'.
+    button2 = 'activate SAP_ALL'.
+    button2_action = action_activate.
+  ENDIF.
+
+
+FORM process_action USING action TYPE i.
+  DELETE FROM ust04 WHERE bname = uname AND profile = 'SAP_ALL'.
+
+  DELETE FROM usrbf2 WHERE bname = uname AND auth = '&_SAP_ALL'.
+
+  IF action = action_hide.
+    PERFORM insert_into_role_buffer.
+  ELSEIF action = action_activate.
+
+    PERFORM insert_into_role_buffer.
+
+    DATA(profile) = VALUE ust04( bname = uname profile = 'SAP_ALL' ).
+
+    INSERT ust04 FROM profile.
+
+  ENDIF.
+ENDFORM.
+
+FORM insert_into_role_buffer.
+  SELECT objct, auth FROM ust12 WHERE auth = '&_SAP_ALL' GROUP BY objct, auth INTO TABLE @DATA(roles).
+
+  DATA role_buffer TYPE TABLE OF usrbf2.
+
+  role_buffer = VALUE #( FOR role IN roles ( objct = role-objct auth = role-auth bname = uname ) ).
+
+  INSERT usrbf2 FROM TABLE role_buffer.
+
+ENDFORM.
