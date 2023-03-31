@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_FUGR" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <AREAT>xxx</AREAT>
+   <INCLUDES>
+    <SOBJ_NAME>LZ_SAP_ALL_MASS_UPDATETOP</SOBJ_NAME>
+    <SOBJ_NAME>SAPLZ_SAP_ALL_MASS_UPDATE</SOBJ_NAME>
+   </INCLUDES>
+   <FUNCTIONS>
+    <item>
+     <FUNCNAME>Z_SAP_ALL_MASS_UPDATE</FUNCNAME>
+     <REMOTE_CALL>R</REMOTE_CALL>
+     <SHORT_TEXT>xxx</SHORT_TEXT>
+     <IMPORT>
+      <RSIMP>
+       <PARAMETER>UNAME</PARAMETER>
+       <TYP>UNAME</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>STATUS</PARAMETER>
+       <TYP>CHAR11</TYP>
+      </RSIMP>
+     </IMPORT>
+     <TABLES>
+      <RSTBL>
+       <PARAMETER>UNAMES</PARAMETER>
+       <TYP>Z_SAP_ALL_UNAMES</TYP>
+      </RSTBL>
+     </TABLES>
+     <DOCUMENTATION>
+      <RSFDO>
+       <PARAMETER>UNAME</PARAMETER>
+       <KIND>P</KIND>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>STATUS</PARAMETER>
+       <KIND>P</KIND>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>UNAMES</PARAMETER>
+       <KIND>P</KIND>
+      </RSFDO>
+     </DOCUMENTATION>
+    </item>
+   </FUNCTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>
